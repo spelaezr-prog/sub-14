@@ -4,21 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scouting EFC - Cantera de Héroes</title>
+    
+    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/en/thumb/5/52/Envigado_FC_logo.svg/1200px-Envigado_FC_logo.svg.png">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/en/thumb/5/52/Envigado_FC_logo.svg/1200px-Envigado_FC_logo.svg.png">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --efc-orange: #f37021; --efc-green: #008f39; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #121212; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 10px; color: white; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background-color: #121212; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 10px;
+            color: white;
+        }
 
-        .toolbar { width: 100%; max-width: 500px; margin-bottom: 15px; display: flex; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); box-sizing: border-box; }
-        select { background: #333; color: white; border: 1px solid var(--efc-orange); padding: 10px; border-radius: 8px; font-size: 14px; flex-grow: 1; outline: none; }
-        .btn-download { background: var(--efc-green); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .setup-zone { background: #222; padding: 10px; border-radius: 10px; font-size: 11px; text-align: center; width: 100%; max-width: 500px; margin-bottom: 10px; border: 1px dashed var(--efc-orange); box-sizing: border-box; }
+        /* Barra de herramientas */
+        .toolbar {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-sizing: border-box;
+        }
+
+        select {
+            background: #333;
+            color: white;
+            border: 1px solid var(--efc-orange);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            flex-grow: 1;
+            outline: none;
+        }
+
+        .btn-download { 
+            background: var(--efc-green); 
+            color: white; 
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Área de configuración inicial del escudo (se ocultará tras el primer uso) */
+        #setup-ui {
+            background: #222;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 10px;
+            border: 1px dashed var(--efc-orange);
+            box-sizing: border-box;
+        }
 
         #canvas-wrapper { width: 100%; max-width: 500px; position: relative; }
-        #canvas-container { position: relative; width: 100%; aspect-ratio: 500 / 720; background-color: #1a4d2e; border: 5px solid #fff; border-radius: 15px; overflow: hidden; }
+        
+        #canvas-container { 
+            position: relative; 
+            width: 100%; 
+            aspect-ratio: 500 / 720; 
+            background-color: #1a4d2e; 
+            border: 5px solid #fff; 
+            border-radius: 15px; 
+            overflow: hidden; 
+        }
 
-        #club-logo { position: absolute; top: 2.5%; right: 3.5%; width: 17%; height: auto; z-index: 25; display: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
-        #team-title { position: absolute; top: 4%; width: 100%; text-align: center; color: #fff; font-size: 24px; font-weight: 900; text-transform: uppercase; text-shadow: 0 4px 8px #000; z-index: 10; outline: none; padding: 0 65px; box-sizing: border-box; }
+        #club-logo { 
+            position: absolute; 
+            top: 2.5%; 
+            right: 3.5%; 
+            width: 18%; 
+            height: auto; 
+            z-index: 25; 
+            display: none;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+        
+        #team-title { 
+            position: absolute; 
+            top: 4%; 
+            width: 100%; 
+            text-align: center; 
+            color: #fff; 
+            font-size: 24px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            text-shadow: 0 4px 8px #000; 
+            z-index: 10; 
+            outline: none; 
+            padding: 0 65px;
+            box-sizing: border-box;
+        }
 
         .pitch-line { position: absolute; border: 2.5px solid rgba(255,255,255,0.4); pointer-events: none; }
         #half-line { width: 100%; top: 50%; border-top: 2.5px solid rgba(255,255,255,0.4); }
@@ -26,41 +119,62 @@
         #area-top { width: 56%; height: 16%; top: -2px; left: 50%; transform: translateX(-50%); border-top: none; }
         #area-bottom { width: 56%; height: 16%; bottom: -2px; left: 50%; transform: translateX(-50%); border-bottom: none; }
 
-        .player-unit { position: absolute; text-align: center; width: 23%; transform: translate(-50%, -50%); z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        .dot { width: 26px; height: 26px; background: var(--efc-orange); border: 2.5px solid #fff; border-radius: 50%; margin: 0 auto 5px auto; }
+        /* Jugadores */
+        .player-unit { 
+            position: absolute; 
+            text-align: center; 
+            width: 23%; 
+            transform: translate(-50%, -50%); 
+            z-index: 5; 
+            transition: all 0.5s ease;
+        }
+        .dot { 
+            width: 26px; 
+            height: 26px; 
+            background: var(--efc-orange); 
+            border: 2.5px solid #fff; 
+            border-radius: 50%; 
+            margin: 0 auto 5px auto; 
+        }
         .gk .dot { background: #f1c40f; }
-        .name-box { background: rgba(0,0,0,0.85); padding: 4px; border-radius: 7px; width: 100%; border: 1px solid rgba(255,255,255,0.2); }
-        .starter { color: #fff; font-size: 14px; font-weight: 800; display: block; outline: none; }
+        
+        .name-box { 
+            background: rgba(0,0,0,0.85); 
+            padding: 4px; 
+            border-radius: 7px; 
+            width: 100%; 
+            border: 1px solid rgba(255,255,255,0.2); 
+        }
+
+        .starter { color: #fff; font-size: 14px; font-weight: 800; display: block; outline: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .sub { color: #00ff6a; font-size: 10px; font-style: italic; display: block; border-top: 1px solid rgba(255,255,255,0.3); margin-top: 3px; outline: none; min-height: 10px; }
 
-        /* POSICIONES FIJAS (GK, DF, EXTREMOS, DC) */
-        [id^="p"] { transition: all 0.5s ease; }
-        #p1 { top: 92%; left: 50%; } /* GK */
-        #p2 { top: 74%; left: 14%; } /* DFI */
-        #p3 { top: 83%; left: 34%; } /* DFC1 */
-        #p4 { top: 83%; left: 66%; } /* DFC2 */
-        #p5 { top: 74%; left: 86%; } /* DFD */
-        #p8 { top: 34%; left: 14%; } /* EXTREMO IZQ (Fijo) */
-        #p10{ top: 34%; left: 86%; } /* EXTREMO DER (Fijo) */
-        #p11{ top: 16%; left: 50%; } /* DC (Fijo) */
+        /* POSICIONES */
+        /* GK, DFs y EXTREMOS son iguales en ambos */
+        #p1 { top: 92%; left: 50%; }
+        #p2 { top: 74%; left: 14%; } 
+        #p3 { top: 83%; left: 34%; } 
+        #p4 { top: 83%; left: 66%; } 
+        #p5 { top: 74%; left: 86%; } 
+        #p8 { top: 34%; left: 14%; } 
+        #p10{ top: 34%; left: 86%; } 
+        #p11{ top: 16%; left: 50%; } 
 
-        /* EL TRIÁNGULO DINÁMICO (P6, P7, P9) */
-        /* 4-2-3-1: 2 Pivotes, 1 Enganche */
-        .form-4231 #p6 { top: 58%; left: 35%; } /* Pivote 1 */
-        .form-4231 #p7 { top: 58%; left: 65%; } /* Pivote 2 */
-        .form-4231 #p9 { top: 40%; left: 50%; } /* Enganche */
+        /* DINÁMICAS (P6, P7, P9) */
+        .form-4231 #p6 { top: 58%; left: 35%; } 
+        .form-4231 #p7 { top: 58%; left: 65%; } 
+        .form-4231 #p9 { top: 40%; left: 50%; } 
 
-        /* 4-3-3: 1 Pivote, 2 Interiores */
-        .form-433 #p6 { top: 62%; left: 50%; } /* Pivote Único */
-        .form-433 #p7 { top: 48%; left: 32%; } /* Interior Izq */
-        .form-433 #p9 { top: 48%; left: 68%; } /* Interior Der */
+        .form-433 #p6 { top: 62%; left: 50%; } 
+        .form-433 #p7 { top: 48%; left: 32%; } 
+        .form-433 #p9 { top: 48%; left: 68%; } 
     </style>
 </head>
 <body>
 
-    <div id="setup-ui" class="setup-zone">
-        <p>Configura el escudo de Envigado una última vez:</p>
-        <input type="file" id="logo-input" accept="image/*" onchange="saveLogoPermanently(event)">
+    <div id="setup-ui">
+        <p>Selecciona el escudo del Envigado para guardarlo permanentemente:</p>
+        <input type="file" accept="image/*" onchange="saveLogo(event)">
     </div>
 
     <div class="toolbar">
@@ -74,7 +188,7 @@
     <div id="canvas-wrapper">
         <div id="canvas-container" class="form-4231">
             <img id="club-logo" src="">
-            <div id="team-title" contenteditable="true">ENVIGADO - Sub-14</div>
+            <div id="team-title" contenteditable="true" oninput="saveData()">ENVIGADO FC</div>
             <div class="pitch-line" id="half-line"></div>
             <div class="pitch-line" id="center-circle"></div>
             <div class="pitch-line" id="area-top"></div>
@@ -84,58 +198,75 @@
     </div>
 
     <script>
-        const initialNames = {
-            'p1': 'PORTERO', 'p2': 'LATERAL IZQ', 'p3': 'CENTRAL IZQ', 'p4': 'CENTRAL DER', 'p5': 'LATERAL DER',
-            'p6': 'PIVOTE 1', 'p7': 'PIVOTE 2', 'p8': 'EXTREMO IZQ', 'p9': 'ENGANCHE', 'p10': 'EXTREMO DER', 'p11': 'DELANTERO'
-        };
+        const initialPositions = [
+            {id: 'p1', class: 'gk', t: 'PORTERO'}, {id: 'p2', class: '', t: 'LATERAL IZQ'},
+            {id: 'p3', class: '', t: 'CENTRAL IZQ'}, {id: 'p4', class: '', t: 'CENTRAL DER'},
+            {id: 'p5', class: '', t: 'LATERAL DER'}, {id: 'p6', class: '', t: 'PIVOTE 1'},
+            {id: 'p7', class: '', t: 'PIVOTE 2'}, {id: 'p8', class: '', t: 'EXTREMO IZQ'},
+            {id: 'p9', class: '', t: 'ENGANCHE'}, {id: 'p10', class: '', t: 'EXTREMO DER'},
+            {id: 'p11', class: '', t: 'DELANTERO'}
+        ];
 
         window.onload = () => {
-            const savedLogo = localStorage.getItem('efc_logo_permanent');
-            if (savedLogo) {
-                const img = document.getElementById('club-logo');
-                img.src = savedLogo;
-                img.style.display = 'block';
+            // Cargar Logo
+            const logo = localStorage.getItem('efc_logo_v3');
+            if (logo) {
+                document.getElementById('club-logo').src = logo;
+                document.getElementById('club-logo').style.display = 'block';
                 document.getElementById('setup-ui').style.display = 'none';
             }
-            
-            const pitchDiv = document.getElementById('players-on-pitch');
-            for(let i=1; i<=11; i++) {
-                pitchDiv.innerHTML += `
-                    <div class="player-unit ${i===1?'gk':''}" id="p${i}">
+
+            // Crear Jugadores
+            const pitch = document.getElementById('players-on-pitch');
+            const savedData = JSON.parse(localStorage.getItem('efc_data_' + window.location.pathname)) || {};
+
+            initialPositions.forEach(p => {
+                const pData = savedData[p.id] || { t: p.t, s: 'SUPLENTE' };
+                pitch.innerHTML += `
+                    <div class="player-unit ${p.class}" id="${p.id}">
                         <div class="dot"></div>
                         <div class="name-box">
-                            <span class="starter" contenteditable="true">${initialNames['p'+i]}</span>
-                            <span class="sub" contenteditable="true">SUPLENTE</span>
+                            <span class="starter" contenteditable="true" oninput="saveData()">${pData.t}</span>
+                            <span class="sub" contenteditable="true" oninput="saveData()">${pData.s}</span>
                         </div>
                     </div>`;
+            });
+
+            // Cargar Título y Formación
+            if(savedData.teamTitle) document.getElementById('team-title').innerText = savedData.teamTitle;
+            if(savedData.formation) {
+                document.getElementById('formation-select').value = savedData.formation;
+                updateFormation();
             }
         };
 
-        function updateFormation() {
-            const form = document.getElementById('formation-select').value;
-            const container = document.getElementById('canvas-container');
-            container.className = form;
-
-            // Ajuste de etiquetas sugeridas al cambiar
-            if(form === 'form-433') {
-                document.querySelector('#p6 .starter').innerText = 'PIVOTE';
-                document.querySelector('#p7 .starter').innerText = 'INTERIOR IZQ';
-                document.querySelector('#p9 .starter').innerText = 'INTERIOR DER';
-            } else {
-                document.querySelector('#p6 .starter').innerText = 'PIVOTE 1';
-                document.querySelector('#p7 .starter').innerText = 'PIVOTE 2';
-                document.querySelector('#p9 .starter').innerText = 'ENGANCHE';
-            }
+        function saveData() {
+            const data = {
+                teamTitle: document.getElementById('team-title').innerText,
+                formation: document.getElementById('formation-select').value
+            };
+            initialPositions.forEach(p => {
+                data[p.id] = {
+                    t: document.querySelector(`#${p.id} .starter`).innerText,
+                    s: document.querySelector(`#${p.id} .sub`).innerText
+                };
+            });
+            // Guardamos usando la ruta de la URL para que cada app de cada categoría guarde sus propios datos
+            localStorage.setItem('efc_data_' + window.location.pathname, JSON.stringify(data));
         }
 
-        function saveLogoPermanently(event) {
-            const file = event.target.files[0];
+        function updateFormation() {
+            document.getElementById('canvas-container').className = document.getElementById('formation-select').value;
+            saveData();
+        }
+
+        function saveLogo(event) {
             const reader = new FileReader();
-            reader.onloadend = function() {
-                localStorage.setItem('efc_logo_permanent', reader.result);
+            reader.onload = (e) => {
+                localStorage.setItem('efc_logo_v3', e.target.result);
                 location.reload();
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(event.target.files[0]);
         }
 
         function saveImage() {
@@ -151,6 +282,7 @@
     </script>
 </body>
 </html>
+
 
 
 
